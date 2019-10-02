@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
         var currentPosition = 0; //Keep the position of active stacked card.
         var velocity = 0.3; //Minimum velocity allowed to trigger a swipe.
         var rightObj; //Keep the swipe right properties.
-        // var leftObj; //Keep the swipe left properties.
         var listElNodesObj; //Keep the list of nodes from stacked cards.
         var listElNodesWidth; //Keep the stacked cards width.
         var currentElementObj; //Keep the stacked card element to swipe.
@@ -27,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
         listElNodesObj = stackedCardsObj.children;
 
         rightObj = obj.querySelector('.stackedcards-overlay.right');
-        // leftObj = obj.querySelector('.stackedcards-overlay.left');
 
         countElements();
         currentElement();
@@ -82,12 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (useOverlays){
-            // leftObj.style.transform = 'translateX(0px) translateY(' + elTrans + 'px) translateZ(0px) rotate(0deg)';
             rightObj.style.transform = 'translateX(0px) translateY(' + elTrans + 'px) translateZ(0px) rotate(0deg)';
         } else {
-            // leftObj.className = '';
             rightObj.className = '';
-            // leftObj.classList.add('stackedcards-overlay-hidden');
             rightObj.classList.add('stackedcards-overlay-hidden');
         }
 
@@ -103,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
             transformUi(0, 0, 1, currentElementObj);
 
             if(useOverlays){
-                // transformUi(0, 0, 0, leftObj);
                 transformUi(0, 0, 0, rightObj);
             }
 
@@ -139,6 +133,11 @@ document.addEventListener("DOMContentLoaded", () => {
         function changeStages() {
             if (currentPosition == maxElements){
                 //Event listener created to know when transition ends and changes states
+                const score = document.getElementById('score').innerText;
+                const finalScore = document.getElementById('final-score');
+
+                finalScore.innerText = score;
+
                 listElNodesObj[maxElements - 1].addEventListener('transitionend', function(){
                     document.body.classList.add("background-7");
                     document.querySelector('.stage').classList.add('hidden');
@@ -151,12 +150,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         //Functions to swipe left elements on logic external action.
         // false
+
+        function changeProgress () {
+            const $progress = document.getElementById('progress-line');
+            const $score = document.getElementById('score');
+            const width = $progress.style.width || 0;
+            console.error('$progress.style.width', width);
+            console.error('parseInt($progress.style.width, 10)', parseInt(width, 10));
+
+            $progress.style.width = parseInt(width, 10) + 50 + '%';
+            $score.innerText = parseInt($score.innerText, 10) + 1;
+        }
+
         function onActionLeft() {
             const $card = document.querySelector('.js-active');
             const { status, checked } = $card.dataset;
-
-            console.error('status', status);
-            console.error('checked', checked);
 
             if (checked === "false" && status === "true") {
                 const $flipCardInner = $card.querySelector('.flip-card-inner');
@@ -166,11 +174,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 const $cards = document.querySelectorAll('.card');
                 const currentIndex = Array.from($cards).findIndex(item => item.classList.contains('js-active'));
-
                 const $nextCard = $cards[currentIndex + 1];
 
-                console.error('currentIndex', currentIndex);
-                console.error('$nextCard', $nextCard);
+                if (checked === "false") {
+                    changeProgress();
+                }
 
                 if ($nextCard) {
                     $card.classList.remove('js-active');
@@ -178,16 +186,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if(!(currentPosition >= maxElements)){
-                    if(useOverlays) {
-                        // leftObj.classList.remove('no-transition');
-                        // leftObj.style.zIndex = '8';
-                        // transformUi(0, 0, 1, leftObj);
-                    }
-
                     setTimeout(function() {
                         onSwipeLeft();
                         resetOverlayLeft();
-                    },300);
+                    },500);
                 }
             }
         };
@@ -196,9 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
         function onActionRight() {
             const $card = document.querySelector('.js-active');
             const { status, checked } = $card.dataset;
-
-            console.error('status', status);
-            console.error('checked', checked);
 
             if (checked === "false" && status === "false") {
                 const $flipCardInner = $card.querySelector('.flip-card-inner');
@@ -209,11 +208,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const $cards = document.querySelectorAll('.card');
                 const currentIndex = Array.from($cards).findIndex(item => item.classList.contains('js-active'));
-
                 const $nextCard = $cards[currentIndex + 1];
 
-                console.error('currentIndex', currentIndex);
-                console.error('$nextCard', $nextCard);
+                if (checked === "false") {
+                    changeProgress();
+                }
 
                 if ($nextCard) {
                     $card.classList.remove('js-active');
@@ -230,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(function(){
                         onSwipeRight();
                         resetOverlayRight();
-                    },300);
+                    },1000);
                 }
             }
         };
@@ -240,7 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
             removeNoTransition();
             transformUi(-1000, 0, 0, currentElementObj);
             if(useOverlays){
-                // transformUi(-1000, 0, 0, leftObj); //Move leftOverlay
                 resetOverlayLeft();
             }
             currentPosition = currentPosition + 1;
@@ -273,7 +271,6 @@ document.addEventListener("DOMContentLoaded", () => {
             removeNoTransition();
             transformUi(0, -1000, 0, currentElementObj);
             if(useOverlays){
-                // transformUi(0, -1000, 0, leftObj); //Move leftOverlay
                 transformUi(0, -1000, 0, rightObj); //Move rightOverlay
                 resetOverlays();
             }
@@ -291,7 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if(listElNodesObj[currentPosition]){
 
                 if(useOverlays) {
-                    // leftObj.classList.remove('no-transition');
                     rightObj.classList.remove('no-transition');
                 }
 
@@ -378,14 +374,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         if(!isFirstTime){
-                            // leftObj.classList.add('no-transition');
                             rightObj.classList.add('no-transition');
                         }
 
                         requestAnimationFrame(function(){
-                            // leftObj.style.transform = "translateX(0) translateY(" + elTrans + "px) translateZ(0)";
-                            // leftObj.style.opacity = '0';
-
                             rightObj.style.transform = "translateX(0) translateY(" + elTrans + "px) translateZ(0)";
                             rightObj.style.opacity = '0';
                         });
@@ -432,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 if(rotate){
-                    rotateElement = RotateRegulator(moveX);
+                    var rotateElement = RotateRegulator(moveX);
                 } else {
                     rotateElement = 0;
                 }
@@ -464,14 +456,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 var elTransTop = items;
                 var elTransInc = elementsMargin;
 
-                for(i = currentPosition; i < (currentPosition + items); i++){
+                for(let i = currentPosition; i < (currentPosition + items); i++){
                     if(listElNodesObj[i]){
                         if(stackedOptions === "Top"){
 
                             listElNodesObj[i].classList.add('stackedcards-top', 'stackedcards--animatable', 'stackedcards-origin-top');
 
                             if(useOverlays){
-                                // leftObj.classList.add('stackedcards-origin-top');
                                 rightObj.classList.add('stackedcards-origin-top');
                             }
 
@@ -482,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             listElNodesObj[i].classList.add('stackedcards-bottom', 'stackedcards--animatable', 'stackedcards-origin-bottom');
 
                             if(useOverlays){
-                                // leftObj.classList.add('stackedcards-origin-bottom');
                                 rightObj.classList.add('stackedcards-origin-bottom');
                             }
 
@@ -562,7 +552,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     setZindex(6);
 
                     if(useOverlays){
-                        // leftObj.classList.add('no-transition');
                         rightObj.classList.add('no-transition');
                     }
 
@@ -601,7 +590,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     if(useOverlays){
-                        // leftObj.style.zIndex = 8;
                         rightObj.style.zIndex = 8;
                     }
 
