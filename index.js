@@ -155,18 +155,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const $progress = document.getElementById('progress-line');
             const $score = document.getElementById('score');
             const width = $progress.style.width || 0;
-            console.error('$progress.style.width', width);
-            console.error('parseInt($progress.style.width, 10)', parseInt(width, 10));
 
             $progress.style.width = parseInt(width, 10) + 50 + '%';
             $score.innerText = parseInt($score.innerText, 10) + 1;
         }
 
-        function onActionLeft() {
+        function checkAnswer (position, cb, rotate = true) {
             const $card = document.querySelector('.js-active');
             const { status, checked } = $card.dataset;
+            const check = position === 'left' ? checked === "false" && status === "true" : checked === "false" && status === "false";
 
-            if (checked === "false" && status === "true") {
+            if (check && rotate) {
                 const $flipCardInner = $card.querySelector('.flip-card-inner');
 
                 $flipCardInner.classList.add('active');
@@ -176,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const currentIndex = Array.from($cards).findIndex(item => item.classList.contains('js-active'));
                 const $nextCard = $cards[currentIndex + 1];
 
-                if (checked === "false") {
+                if (checked === "false" && rotate) {
                     changeProgress();
                 }
 
@@ -185,40 +184,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     $nextCard.classList.add('js-active');
                 }
 
+                cb();
+            }
+        }
+
+        function onActionLeft() {
+            checkAnswer('left', () => {
                 if(!(currentPosition >= maxElements)){
                     setTimeout(function() {
                         onSwipeLeft();
                         resetOverlayLeft();
                     },500);
                 }
-            }
+            });
         };
 
         //Functions to swipe right elements on logic external action.
         function onActionRight() {
-            const $card = document.querySelector('.js-active');
-            const { status, checked } = $card.dataset;
-
-            if (checked === "false" && status === "false") {
-                const $flipCardInner = $card.querySelector('.flip-card-inner');
-
-                $flipCardInner.classList.add('active');
-                $card.dataset.checked = "true";
-            } else {
-
-                const $cards = document.querySelectorAll('.card');
-                const currentIndex = Array.from($cards).findIndex(item => item.classList.contains('js-active'));
-                const $nextCard = $cards[currentIndex + 1];
-
-                if (checked === "false") {
-                    changeProgress();
-                }
-
-                if ($nextCard) {
-                    $card.classList.remove('js-active');
-                    $nextCard.classList.add('js-active');
-                }
-
+            checkAnswer('right', () => {
                 if(!(currentPosition >= maxElements)){
                     if(useOverlays) {
                         rightObj.classList.remove('no-transition');
@@ -231,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         resetOverlayRight();
                     },1000);
                 }
-            }
+            });
         };
 
         //Swipe active card to left.
@@ -581,12 +564,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if(useOverlays){
                     if(translateX < 0){
-                        transformUi(translateX, translateY, leftOpacity, leftObj);
                         transformUi(0, 0, 0, rightObj);
 
                     } else if(translateX > 0){
                         transformUi(translateX, translateY, rightOpacity, rightObj);
-                        transformUi(0, 0, 0, leftObj);
                     }
 
                     if(useOverlays){
@@ -625,14 +606,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if(translateX < 0){
                         if(translateX < ((listElNodesWidth / 2) * -1) || (Math.abs(translateX) / timeTaken > velocity)){ // Did It Move To Left?
-                            onSwipeLeft();
+                            console.error('left');
+                            checkAnswer('left', () => {
+                                onSwipeLeft();
+                            }, false)
                         } else {
                             backToMiddle();
                         }
                     } else if(translateX > 0) {
 
                         if (translateX > (listElNodesWidth / 2) && (Math.abs(translateX) / timeTaken > velocity)){ // Did It Move To Right?
-                            onSwipeRight();
+                            console.error('right');
+                            checkAnswer('right', () => {
+                                onSwipeRight();
+                            }, false);
                         } else {
                             backToMiddle();
                         }
